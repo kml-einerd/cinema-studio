@@ -59,8 +59,8 @@ export function ImageStudio() {
                 <div class="absolute top-4 right-4 text-primary animate-pulse">✨</div>
              </div>
         </div>
-        <h1 class="text-2xl sm:text-4xl md:text-7xl font-black text-white tracking-widest uppercase mb-4 selection:bg-primary selection:text-black text-center px-4">Nano Banana Pro</h1>
-        <p class="text-secondary text-sm font-medium tracking-wide opacity-60">Create stunning, high-aesthetic images in seconds</p>
+        <h1 class="text-2xl sm:text-4xl md:text-7xl font-black text-white tracking-widest uppercase mb-4 selection:bg-primary selection:text-black text-center px-4">Cinema Studio</h1>
+        <p class="text-secondary text-sm font-medium tracking-wide opacity-60">AI-powered image generation • Powered by Google Gemini</p>
     `;
     container.appendChild(hero);
 
@@ -536,7 +536,8 @@ export function ImageStudio() {
             const res = await muapi.generateImage({
                 prompt,
                 model: selectedModel,
-                aspect_ratio: selectedAr
+                aspect_ratio: selectedAr,
+                resolution: document.getElementById('quality-btn-label')?.textContent || '1K'
             });
 
             console.log('[ImageStudio] Full response:', res);
