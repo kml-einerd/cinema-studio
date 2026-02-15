@@ -42,11 +42,21 @@ export class MuapiClient {
                 throw new Error(data.error);
             }
 
-            return { 
+            const result = { 
                 url: data.url, 
                 id: Date.now().toString(),
                 text: data.text 
             };
+
+            // Save to library
+            try {
+                const history = JSON.parse(localStorage.getItem('cinema_history') || '[]');
+                history.push({ url: data.url, prompt: params.prompt, model: params.model, date: new Date().toISOString() });
+                if (history.length > 50) history.splice(0, history.length - 50);
+                localStorage.setItem('cinema_history', JSON.stringify(history));
+            } catch(e) {}
+
+            return result;
 
         } catch (error) {
             console.error("Gemini Client Error:", error);
