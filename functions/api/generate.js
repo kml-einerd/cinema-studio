@@ -1,16 +1,26 @@
 // Cloudflare Pages Function - Gemini API Proxy
 export async function onRequestPost(context) {
-  const GEMINI_API_KEY = 'AIzaSyCI3AEZDmtmJ-CUM86T6bI-PSaWqatrnCg';
+  // Try env var first, then fall back to client-provided key
+  const envKey = context.env.GEMINI_API_KEY;
   
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
   };
 
   try {
     const body = await context.request.json();
-    const { prompt, model, aspect_ratio } = body;
+    const { prompt, model, aspect_ratio, apiKey } = body;
+    
+    const GEMINI_API_KEY = apiKey || envKey;
+    
+    if (!GEMINI_API_KEY) {
+      return new Response(JSON.stringify({ error: 'No API key configured. Please set your Gemini API key in Settings.' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -25,8 +35,12 @@ export async function onRequestPost(context) {
       fullPrompt += ` [Aspect ratio: ${aspect_ratio}]`;
     }
 
-    // Select Gemini model
-    const geminiModel = model || 'gemini-2.0-flash-preview-image-generation';
+    // Select Gemini model - map to available ones
+    const modelMap = {
+      'gemini-2.5-flash-image': 'gemini-2.5-flash-image',
+      'gemini-3-pro-image-preview': 'gemini-3-pro-image-preview',
+    };
+    const geminiModel = modelMap[model] || 'gemini-2.5-flash-image';
     
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`;
 
@@ -39,8 +53,6 @@ export async function onRequestPost(context) {
       }
     };
 
-    console.log('[Gemini] Requesting:', geminiModel);
-
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,7 +61,6 @@ export async function onRequestPost(context) {
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[Gemini] Error:', errText);
       return new Response(JSON.stringify({ error: `Gemini API error: ${response.status}`, details: errText }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -74,9 +85,8 @@ export async function onRequestPost(context) {
 
     if (!imageData) {
       return new Response(JSON.stringify({ 
-        error: 'No image generated', 
+        error: 'No image generated. The model returned text only.', 
         text: textResponse,
-        raw: data 
       }), {
         status: 422,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -107,7 +117,7 @@ export async function onRequestOptions() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
     },
   });
 }

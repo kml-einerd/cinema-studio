@@ -5,20 +5,23 @@ export class MuapiClient {
     }
 
     getKey() {
-        // Key is server-side now, no client key needed
-        return 'gemini';
+        const key = localStorage.getItem('muapi_key');
+        if (!key) throw new Error('API Key missing. Please set it in Settings.');
+        return key;
     }
 
     async generateImage(params) {
+        const key = this.getKey();
         const url = `/api/generate`;
 
         const payload = {
             prompt: params.prompt,
-            model: 'gemini-2.0-flash-preview-image-generation',
+            model: params.model || 'gemini-2.5-flash-image',
             aspect_ratio: params.aspect_ratio || '1:1',
+            apiKey: key,
         };
 
-        console.log('[Gemini] Requesting generation:', payload);
+        console.log('[Gemini] Requesting generation:', { ...payload, apiKey: '***' });
 
         try {
             const response = await fetch(url, {
@@ -28,13 +31,12 @@ export class MuapiClient {
             });
 
             if (!response.ok) {
-                const errText = await response.text();
-                console.error('[Gemini] API Error:', errText);
-                throw new Error(`API Request Failed: ${response.status} - ${errText.slice(0, 200)}`);
+                const errData = await response.json().catch(() => ({}));
+                const msg = errData.error || `API Request Failed: ${response.status}`;
+                throw new Error(msg);
             }
 
             const data = await response.json();
-            console.log('[Gemini] Response received, has image:', !!data.url);
 
             if (data.error) {
                 throw new Error(data.error);

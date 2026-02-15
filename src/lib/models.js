@@ -1,9 +1,9 @@
 // Gemini Image Generation Models
 export const t2iModels = [
   {
-    id: "gemini-2.0-flash-preview-image-generation",
-    name: "Gemini 2.0 Flash",
-    endpoint: "gemini-2.0-flash-preview-image-generation",
+    id: "gemini-2.5-flash-image",
+    name: "Gemini 2.5 Flash",
+    endpoint: "gemini-2.5-flash-image",
     inputs: {
       prompt: {
         type: "string",
@@ -23,15 +23,15 @@ export const t2iModels = [
     }
   },
   {
-    id: "gemini-2.5-flash-image-preview",
-    name: "Gemini 2.5 Flash Image",
-    endpoint: "gemini-2.5-flash-image-preview",
+    id: "gemini-3-pro-image-preview",
+    name: "Gemini 3 Pro Image",
+    endpoint: "gemini-3-pro-image-preview",
     inputs: {
       prompt: {
         type: "string",
         title: "Prompt",
         name: "prompt",
-        description: "Text prompt for image generation with latest Gemini 2.5.",
+        description: "Latest Gemini 3 Pro for highest quality image generation.",
         examples: ["A photorealistic portrait of an elderly craftsman in warm studio light"]
       },
       aspect_ratio: {
